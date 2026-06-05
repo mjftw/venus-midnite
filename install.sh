@@ -13,14 +13,27 @@ usage() {
     echo "  The device will reboot at the end of installation."
     echo ""
     echo "  Example: $0 192.168.1.50"
+    echo "  Example: CERBO_SSH_PASSWORD=secret $0 192.168.1.50"
     exit 1
 }
 
 [ $# -eq 1 ] || usage
 CERBO_IP="$1"
 
-SSH="ssh root@${CERBO_IP}"
-SCP="scp -r"
+if [ -n "${CERBO_SSH_PASSWORD:-}" ]; then
+    if ! command -v sshpass &>/dev/null; then
+        echo "ERROR: CERBO_SSH_PASSWORD is set but sshpass is not installed."
+        echo "       Install it with: apt install sshpass  (or brew install hudochenkov/sshpass/sshpass on macOS)"
+        exit 1
+    fi
+    SSH="sshpass -e ssh -o StrictHostKeyChecking=no root@${CERBO_IP}"
+    SCP="sshpass -e scp -o StrictHostKeyChecking=no -r"
+    export SSHPASS="${CERBO_SSH_PASSWORD}"
+    echo "==> Using password authentication (sshpass)"
+else
+    SSH="ssh root@${CERBO_IP}"
+    SCP="scp -r"
+fi
 
 echo "==> Connecting to VenusOS device at ${CERBO_IP}..."
 $SSH "echo '    Connected OK'" || {
