@@ -6,7 +6,7 @@ SERVICE_LINK="/service/midnite"
 LOG_DIR="/var/log/midnite"
 RCLOCAL="/data/rcS.local"
 
-CONNECT_RETRIES=5
+CONNECT_RETRIES=50
 CONNECT_RETRY_DELAY=3  # seconds between attempts
 
 usage() {
@@ -66,14 +66,14 @@ ssh_with_retry "echo '    Connected OK'"
 
 echo "==> Copying files to ${INSTALL_PATH}..."
 $SSH "mkdir -p ${INSTALL_PATH}/service/log"
-scp_file midnite_hydro.py  "${INSTALL_PATH}/midnite_hydro.py"
-scp_file midnite_hydro.sh  "${INSTALL_PATH}/midnite_hydro.sh"
+scp_file midnite_classic.py  "${INSTALL_PATH}/midnite_classic.py"
+scp_file midnite_classic.sh  "${INSTALL_PATH}/midnite_classic.sh"
 scp_file config.py         "${INSTALL_PATH}/config.py"
 scp_file service/run       "${INSTALL_PATH}/service/run"
 scp_file service/log/run   "${INSTALL_PATH}/service/log/run"
 
 echo "==> Setting permissions..."
-$SSH "chmod +x ${INSTALL_PATH}/midnite_hydro.sh \
+$SSH "chmod +x ${INSTALL_PATH}/midnite_classic.sh \
                 ${INSTALL_PATH}/service/run \
                 ${INSTALL_PATH}/service/log/run"
 

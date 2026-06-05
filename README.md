@@ -56,7 +56,7 @@ MIDNITE_INTERVAL = 5               # Poll interval in seconds
 ### 3. Make scripts executable
 
 ```bash
-chmod +x /data/midnite/midnite_hydro.sh
+chmod +x /data/midnite/midnite_classic.sh
 chmod +x /data/midnite/service/run
 chmod +x /data/midnite/service/log/run
 ```
@@ -110,8 +110,8 @@ Remove the lines added to `/data/rcS.local` and reboot.
 ```
 venus-midnite/
 ├── install.sh          # Installs onto a Cerbo GX over SSH and reboots
-├── midnite_hydro.py    # Main script — registers both D-Bus services
-├── midnite_hydro.sh    # Shell wrapper called by the runit service
+├── midnite_classic.py    # Main script — registers both D-Bus services
+├── midnite_classic.sh    # Shell wrapper called by the runit service
 ├── config.py           # IP address, poll interval, state code mappings
 ├── service/
 │   ├── run             # runit service definition

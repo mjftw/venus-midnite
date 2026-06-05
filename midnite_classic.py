@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Name: 		midnite_hydro.py
+# Name: 		midnite_classic.py
 # Purpose:	Present BOTH a Hydro Generator and a Battery Monitor to VenusOS
 #           using a SINGLE safe Modbus connection to prevent MidNite network lockups.
 # Date:		06-05-2026
@@ -45,7 +45,7 @@ class readMidnite ():
 		self.charger = VeDbusService (servicename='com.victronenergy.solarcharger.midnite', register=False)
 		self.charger.add_path('/DeviceInstance',			0)
 		self.charger.add_path('/ProductName',				'Midnite Classic Hydro Turbine')
-		self.charger.add_path('/Mgmt/ProcessName',			'midnite_hydro.py')
+		self.charger.add_path('/Mgmt/ProcessName',			'midnite_classic.py')
 		self.charger.add_path('/Mgmt/ProcessVersion',		config.VERSION)
 		self.charger.add_path('/Mgmt/Connection',			'dbus')
 		self.charger.add_path('/FirmwareVersion',			config.VERSION)
@@ -83,7 +83,7 @@ class readMidnite ():
 		self.battery = VeDbusService (servicename='com.victronenergy.battery.midnite', register=False)
 		self.battery.add_path('/DeviceInstance',			0)
 		self.battery.add_path('/ProductName',				'Midnite Classic Battery Monitor')
-		self.battery.add_path('/Mgmt/ProcessName',			'midnite_hydro.py')
+		self.battery.add_path('/Mgmt/ProcessName',			'midnite_classic.py')
 		self.battery.add_path('/Mgmt/ProcessVersion',		config.VERSION)
 		self.battery.add_path('/Mgmt/Connection',			'dbus')
 		self.battery.add_path('/FirmwareVersion',			config.VERSION)
