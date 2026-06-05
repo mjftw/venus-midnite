@@ -22,3 +22,10 @@ MIDNITE_VICTRON = {
 	10: 3,  # HyperVOC:             Victron Bulk
 	18: 7,  # EqualizeMPPT:         Victron Equalize
 }
+
+# Optional direct MQTT publishing (battery + turbine values).
+# Venus OS's built-in Mosquitto bridge already exposes all D-Bus paths to MQTT,
+# so this is only needed if you want to push to a separate external broker.
+MQTT_ENABLED        = False
+MQTT_IP             = "192.168.1.101"
+MQTT_PREFIX         = "classic"

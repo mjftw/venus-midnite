@@ -16,6 +16,7 @@ import sys
 import os
 import time
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
+import paho.mqtt.client
 
 # VenusOS packages
 sys.path.insert (1, os.path.join (os.path.dirname( __file__), '/opt/victronenergy/dbus-systemcalc-py/ext/velib_python'))
@@ -23,6 +24,30 @@ from vedbus import VeDbusService
 from logger import setup_logging
 
 import config
+
+def updateMQTT (sBroker, sTopic, SOC, BATT_V, SHUNT_A, BATT_T, INPUT_V, INPUT_A, BATT_P):
+	mqttClient = paho.mqtt.client.Client ()
+	if (mqttClient.connect (sBroker) == 0):
+		try:
+			mqttClient.publish (sTopic + 'Battery/Voltage',		'{:0.2f}'.format (BATT_V),			retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Battery/Current',		'{:0.2f}'.format (SHUNT_A),			retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Battery/Power',		'{:0.2f}'.format (BATT_V * SHUNT_A),	retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Battery/Temperature',	'{:0.1f}'.format (BATT_T),			retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Battery/SOC',			'{:d}'.format (SOC),				retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Turbine/Voltage',		'{:0.2f}'.format (INPUT_V),			retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Turbine/Current',		'{:0.2f}'.format (INPUT_A),			retain = True)
+			time.sleep (0.1)
+			mqttClient.publish (sTopic + 'Turbine/Power',		'{:d}'.format (BATT_P),				retain = True)
+		except Exception as e:
+			logger.info ('updateMQTT[{:s}]: {:s}'.format (sTopic, repr(e)))
+		finally:
+			mqttClient.disconnect ()
 
 def twos_complement (uValue, iBits):
 	if (uValue & (1 << (iBits - 1))) != 0:		
@@ -183,6 +208,9 @@ class readMidnite ():
 				self.battery['/Midnite/RestReasonCode']	= REST_REASON
 				self.battery['/Alerts/OverTemperature']	= OVER_TEMP
 				self.battery['/Alerts/CurrentLimit']	= CURRENT_LIMIT
+
+			if config.MQTT_ENABLED:
+				updateMQTT (config.MQTT_IP, config.MQTT_PREFIX + '/', SOC, BATT_V, SHUNT_A, BATT_T, INPUT_V, INPUT_A, BATT_P)
 			else:
 				logger.info ('unable to connect to %s' % self.sIP)
 				self.charger['/Connected'] = 0
