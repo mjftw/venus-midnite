@@ -48,6 +48,8 @@ class readMidnite ():
 		self.charger.add_path('/Mgmt/ProcessName',			'midnite_hydro.py')
 		self.charger.add_path('/Mgmt/ProcessVersion',		config.VERSION)
 		self.charger.add_path('/Mgmt/Connection',			'dbus')
+		self.charger.add_path('/FirmwareVersion',			config.VERSION)
+		self.charger.add_path('/HardwareVersion',			config.VERSION)
 		self.charger.add_path('/State',						None, writeable=True)
 		
 		# Standard Turbine Paths
@@ -62,6 +64,11 @@ class readMidnite ():
 		# Extended Grafana Paths (Attached to Charger)
 		self.charger.add_path('/Yield/Lifetime',			None, writeable=True, gettextcallback=lambda a, x: "{:.0f}kWh".format(x))
 		self.charger.add_path('/Yield/AmpHours',			None, writeable=True, gettextcallback=lambda a, x: "{:.0f}Ah".format(x))
+		self.charger.add_path('/Temps/Battery',				None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x))
+		self.charger.add_path('/Temps/FET',					None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x))
+		self.charger.add_path('/Temps/PCB',					None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x))
+		self.charger.add_path('/Soc',						None, writeable=True, gettextcallback=lambda a, x: "{:.0f}%".format(x))
+		self.charger.add_path('/Dc/0/ShuntCurrent',			None, writeable=True, gettextcallback=lambda a, x: "{:.1f}A".format(x))
 		self.charger.add_path('/WasteNot/Pwm',				None, writeable=True, gettextcallback=lambda a, x: "{:.0f}%".format(x))
 		self.charger.add_path('/Midnite/RawState',			None, writeable=True)
 		self.charger.add_path('/Midnite/RestReasonCode',	None, writeable=True)
@@ -74,22 +81,30 @@ class readMidnite ():
 		# DEVICE 2: THE BATTERY MONITOR (WhizBang Jr Service)
 		# =================================================================================
 		self.battery = VeDbusService (servicename='com.victronenergy.battery.midnite', register=False)
-		self.battery.add_path('/DeviceInstance',			0) # Usually 0 or 1, Venus will assign
-		self.battery.add_path('/ProductName',				'WhizBang Jr Battery Monitor')
+		self.battery.add_path('/DeviceInstance',			0)
+		self.battery.add_path('/ProductName',				'Midnite Classic Battery Monitor')
 		self.battery.add_path('/Mgmt/ProcessName',			'midnite_hydro.py')
 		self.battery.add_path('/Mgmt/ProcessVersion',		config.VERSION)
 		self.battery.add_path('/Mgmt/Connection',			'dbus')
+		self.battery.add_path('/FirmwareVersion',			config.VERSION)
+		self.battery.add_path('/HardwareVersion',			config.VERSION)
 		
 		# Core Battery Paths
 		self.battery.add_path('/Soc',						None, writeable=True, gettextcallback=lambda a, x: "{:d}%".format(x))
 		self.battery.add_path('/Dc/0/Voltage',				None, writeable=True, gettextcallback=lambda a, x: "{:.2f}V".format(x))
 		self.battery.add_path('/Dc/0/Current',				None, writeable=True, gettextcallback=lambda a, x: "{:.2f}A".format(x))
 		self.battery.add_path('/Dc/0/Power',				None, writeable=True, gettextcallback=lambda a, x: "{:.0f}W".format(x))
-		
-		# Thermals (Attached to Battery for logic)
-		self.battery.add_path('/Dc/0/Temperature',			None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x)) 
+		self.battery.add_path('/Dc/0/Temperature',			None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x))
 		self.battery.add_path('/Temps/FET',					None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x))
 		self.battery.add_path('/Temps/PCB',					None, writeable=True, gettextcallback=lambda a, x: "{:.1f}C".format(x))
+		self.battery.add_path('/Yield/User',				None, writeable=True, gettextcallback=lambda a, x: "{:.1f}kWh".format(x))
+		self.battery.add_path('/Yield/Lifetime',			None, writeable=True, gettextcallback=lambda a, x: "{:.0f}kWh".format(x))
+		self.battery.add_path('/Yield/AmpHours',			None, writeable=True, gettextcallback=lambda a, x: "{:.0f}Ah".format(x))
+		self.battery.add_path('/WasteNot/Pwm',				None, writeable=True, gettextcallback=lambda a, x: "{:.0f}%".format(x))
+		self.battery.add_path('/Midnite/RawState',			None, writeable=True)
+		self.battery.add_path('/Midnite/RestReasonCode',	None, writeable=True)
+		self.battery.add_path('/Alerts/OverTemperature',	None, writeable=True)
+		self.battery.add_path('/Alerts/CurrentLimit',		None, writeable=True)
 		self.battery.add_path('/Connected',					1)
 		self.battery.register()
 
@@ -130,31 +145,44 @@ class readMidnite ():
 				OVER_TEMP		= 1 if (INFO_FLAGS & 0x00000001) else 0
 				CURRENT_LIMIT	= 1 if (INFO_FLAGS & 0x00000200) else 0
 
-				# Update Device 1: The Hydro Turbine
-				self.charger['/State']					= config.MIDNITE_VICTRON[CHARGE_STATE]
-				self.charger['/Pv/V']					= INPUT_V
-				self.charger['/Pv/I']					= INPUT_A
-				self.charger['/Pv/Power']				= INPUT_P
-				self.charger['/Yield/Power']			= BATT_P  
-				self.charger['/Yield/User']				= DAILY_KWH
-				self.charger['/Dc/0/Voltage']			= BATT_V
-				self.charger['/Dc/0/Current']			= BATT_A
-				self.charger['/Yield/Lifetime']			= LIFETIME_KWH
-				self.charger['/Yield/AmpHours']			= DAILY_AH
-				self.charger['/WasteNot/Pwm']			= PWM_PERCENT
-				self.charger['/Midnite/RawState']		= MIDNITE_STATE
-				self.charger['/Midnite/RestReasonCode']	= REST_REASON
-				self.charger['/Alerts/OverTemperature']	= OVER_TEMP
-				self.charger['/Alerts/CurrentLimit']	= CURRENT_LIMIT
+			# Update Device 1: The Hydro Turbine
+			self.charger['/State']					= config.MIDNITE_VICTRON[CHARGE_STATE]
+			self.charger['/Pv/V']					= INPUT_V
+			self.charger['/Pv/I']					= INPUT_A
+			self.charger['/Pv/Power']				= INPUT_P
+			self.charger['/Yield/Power']			= BATT_P
+			self.charger['/Yield/User']				= DAILY_KWH
+			self.charger['/Dc/0/Voltage']			= BATT_V
+			self.charger['/Dc/0/Current']			= BATT_A
+			self.charger['/Yield/Lifetime']			= LIFETIME_KWH
+			self.charger['/Yield/AmpHours']			= DAILY_AH
+			self.charger['/Temps/Battery']			= BATT_T
+			self.charger['/Temps/FET']				= FET_T
+			self.charger['/Temps/PCB']				= PCB_T
+			self.charger['/Soc']					= SOC
+			self.charger['/Dc/0/ShuntCurrent']		= SHUNT_A
+			self.charger['/WasteNot/Pwm']			= PWM_PERCENT
+			self.charger['/Midnite/RawState']		= MIDNITE_STATE
+			self.charger['/Midnite/RestReasonCode']	= REST_REASON
+			self.charger['/Alerts/OverTemperature']	= OVER_TEMP
+			self.charger['/Alerts/CurrentLimit']	= CURRENT_LIMIT
 
-				# Update Device 2: The Battery Monitor
-				self.battery['/Soc']					= SOC
-				self.battery['/Dc/0/Voltage']			= BATT_V
-				self.battery['/Dc/0/Current']			= SHUNT_A
-				self.battery['/Dc/0/Power']				= round(BATT_V * SHUNT_A)
-				self.battery['/Dc/0/Temperature']		= BATT_T
-				self.battery['/Temps/FET']				= FET_T
-				self.battery['/Temps/PCB']				= PCB_T
+			# Update Device 2: The Battery Monitor
+			self.battery['/Soc']					= SOC
+			self.battery['/Dc/0/Voltage']			= BATT_V
+			self.battery['/Dc/0/Current']			= SHUNT_A
+			self.battery['/Dc/0/Power']				= round(BATT_V * SHUNT_A)
+			self.battery['/Dc/0/Temperature']		= BATT_T
+			self.battery['/Temps/FET']				= FET_T
+			self.battery['/Temps/PCB']				= PCB_T
+			self.battery['/Yield/User']				= DAILY_KWH
+			self.battery['/Yield/Lifetime']			= LIFETIME_KWH
+			self.battery['/Yield/AmpHours']			= DAILY_AH
+			self.battery['/WasteNot/Pwm']			= PWM_PERCENT
+			self.battery['/Midnite/RawState']		= MIDNITE_STATE
+			self.battery['/Midnite/RestReasonCode']	= REST_REASON
+			self.battery['/Alerts/OverTemperature']	= OVER_TEMP
+			self.battery['/Alerts/CurrentLimit']	= CURRENT_LIMIT
 
 			else:
 				logger.info ('unable to connect to %s' % self.sIP)

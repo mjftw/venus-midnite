@@ -133,6 +133,11 @@ venus-midnite/
 | `/Yield/Lifetime`             | Lifetime kWh                                        |
 | `/Yield/AmpHours`             | Daily Ah                                            |
 | `/State`                      | Victron charge state (Bulk / Absorb / Float…)       |
+| `/Temps/Battery`              | Battery temperature (external sensor)               |
+| `/Temps/FET`                  | MidNite FET temperature                             |
+| `/Temps/PCB`                  | MidNite PCB temperature                             |
+| `/Soc`                        | State of charge %                                   |
+| `/Dc/0/ShuntCurrent`          | Net shunt current (negative = discharging)          |
 | `/WasteNot/Pwm`               | AUX2 PWM duty cycle — power dumped to thermal store |
 | `/Midnite/RawState`           | Raw MidNite state code                              |
 | `/Midnite/RestReasonCode`     | Why the controller is resting                       |
@@ -141,12 +146,23 @@ venus-midnite/
 
 ### Battery Monitor (`battery`)
 
-| Path                  | Description                                 |
-|-----------------------|---------------------------------------------|
-| `/Soc`                | State of charge %                           |
-| `/Dc/0/Voltage`       | Battery voltage                             |
-| `/Dc/0/Current`       | Net shunt current (negative = discharging)  |
-| `/Dc/0/Power`         | Net battery power                           |
-| `/Dc/0/Temperature`   | Battery temperature (external sensor)       |
-| `/Temps/FET`          | MidNite FET temperature                     |
-| `/Temps/PCB`          | MidNite PCB temperature                     |
+All paths from the charger service are also mirrored here so Grafana dashboards
+can query either service without breakage.
+
+| Path                      | Description                                 |
+|---------------------------|---------------------------------------------|
+| `/Soc`                    | State of charge %                           |
+| `/Dc/0/Voltage`           | Battery voltage                             |
+| `/Dc/0/Current`           | Net shunt current (negative = discharging)  |
+| `/Dc/0/Power`             | Net battery power                           |
+| `/Dc/0/Temperature`       | Battery temperature (external sensor)       |
+| `/Temps/FET`              | MidNite FET temperature                     |
+| `/Temps/PCB`              | MidNite PCB temperature                     |
+| `/Yield/User`             | Daily kWh (resets at midnight)              |
+| `/Yield/Lifetime`         | Lifetime kWh                                |
+| `/Yield/AmpHours`         | Daily Ah                                    |
+| `/WasteNot/Pwm`           | AUX2 PWM duty cycle                         |
+| `/Midnite/RawState`       | Raw MidNite state code                      |
+| `/Midnite/RestReasonCode` | Why the controller is resting               |
+| `/Alerts/OverTemperature` | Hardware alert flag                         |
+| `/Alerts/CurrentLimit`    | Hardware alert flag                         |
