@@ -110,7 +110,7 @@ class readMidnite ():
 
 	def readModbus (self):
 		try:
-			if self.classic.connect ():
+			if self.classic.connect():
 				# ONE safe connection pulls all data
 				HR41 = self.classic.read_holding_registers (4100, 100)
 				HR42 = self.classic.read_holding_registers (4200, 100)
@@ -145,45 +145,44 @@ class readMidnite ():
 				OVER_TEMP		= 1 if (INFO_FLAGS & 0x00000001) else 0
 				CURRENT_LIMIT	= 1 if (INFO_FLAGS & 0x00000200) else 0
 
-			# Update Device 1: The Hydro Turbine
-			self.charger['/State']					= config.MIDNITE_VICTRON[CHARGE_STATE]
-			self.charger['/Pv/V']					= INPUT_V
-			self.charger['/Pv/I']					= INPUT_A
-			self.charger['/Pv/Power']				= INPUT_P
-			self.charger['/Yield/Power']			= BATT_P
-			self.charger['/Yield/User']				= DAILY_KWH
-			self.charger['/Dc/0/Voltage']			= BATT_V
-			self.charger['/Dc/0/Current']			= BATT_A
-			self.charger['/Yield/Lifetime']			= LIFETIME_KWH
-			self.charger['/Yield/AmpHours']			= DAILY_AH
-			self.charger['/Temps/Battery']			= BATT_T
-			self.charger['/Temps/FET']				= FET_T
-			self.charger['/Temps/PCB']				= PCB_T
-			self.charger['/Soc']					= SOC
-			self.charger['/Dc/0/ShuntCurrent']		= SHUNT_A
-			self.charger['/WasteNot/Pwm']			= PWM_PERCENT
-			self.charger['/Midnite/RawState']		= MIDNITE_STATE
-			self.charger['/Midnite/RestReasonCode']	= REST_REASON
-			self.charger['/Alerts/OverTemperature']	= OVER_TEMP
-			self.charger['/Alerts/CurrentLimit']	= CURRENT_LIMIT
+				# Update Device 1: The Hydro Turbine
+				self.charger['/State']					= config.MIDNITE_VICTRON[CHARGE_STATE]
+				self.charger['/Pv/V']					= INPUT_V
+				self.charger['/Pv/I']					= INPUT_A
+				self.charger['/Pv/Power']				= INPUT_P
+				self.charger['/Yield/Power']			= BATT_P
+				self.charger['/Yield/User']				= DAILY_KWH
+				self.charger['/Dc/0/Voltage']			= BATT_V
+				self.charger['/Dc/0/Current']			= BATT_A
+				self.charger['/Yield/Lifetime']			= LIFETIME_KWH
+				self.charger['/Yield/AmpHours']			= DAILY_AH
+				self.charger['/Temps/Battery']			= BATT_T
+				self.charger['/Temps/FET']				= FET_T
+				self.charger['/Temps/PCB']				= PCB_T
+				self.charger['/Soc']					= SOC
+				self.charger['/Dc/0/ShuntCurrent']		= SHUNT_A
+				self.charger['/WasteNot/Pwm']			= PWM_PERCENT
+				self.charger['/Midnite/RawState']		= MIDNITE_STATE
+				self.charger['/Midnite/RestReasonCode']	= REST_REASON
+				self.charger['/Alerts/OverTemperature']	= OVER_TEMP
+				self.charger['/Alerts/CurrentLimit']	= CURRENT_LIMIT
 
-			# Update Device 2: The Battery Monitor
-			self.battery['/Soc']					= SOC
-			self.battery['/Dc/0/Voltage']			= BATT_V
-			self.battery['/Dc/0/Current']			= SHUNT_A
-			self.battery['/Dc/0/Power']				= round(BATT_V * SHUNT_A)
-			self.battery['/Dc/0/Temperature']		= BATT_T
-			self.battery['/Temps/FET']				= FET_T
-			self.battery['/Temps/PCB']				= PCB_T
-			self.battery['/Yield/User']				= DAILY_KWH
-			self.battery['/Yield/Lifetime']			= LIFETIME_KWH
-			self.battery['/Yield/AmpHours']			= DAILY_AH
-			self.battery['/WasteNot/Pwm']			= PWM_PERCENT
-			self.battery['/Midnite/RawState']		= MIDNITE_STATE
-			self.battery['/Midnite/RestReasonCode']	= REST_REASON
-			self.battery['/Alerts/OverTemperature']	= OVER_TEMP
-			self.battery['/Alerts/CurrentLimit']	= CURRENT_LIMIT
-
+				# Update Device 2: The Battery Monitor
+				self.battery['/Soc']					= SOC
+				self.battery['/Dc/0/Voltage']			= BATT_V
+				self.battery['/Dc/0/Current']			= SHUNT_A
+				self.battery['/Dc/0/Power']				= round(BATT_V * SHUNT_A)
+				self.battery['/Dc/0/Temperature']		= BATT_T
+				self.battery['/Temps/FET']				= FET_T
+				self.battery['/Temps/PCB']				= PCB_T
+				self.battery['/Yield/User']				= DAILY_KWH
+				self.battery['/Yield/Lifetime']			= LIFETIME_KWH
+				self.battery['/Yield/AmpHours']			= DAILY_AH
+				self.battery['/WasteNot/Pwm']			= PWM_PERCENT
+				self.battery['/Midnite/RawState']		= MIDNITE_STATE
+				self.battery['/Midnite/RestReasonCode']	= REST_REASON
+				self.battery['/Alerts/OverTemperature']	= OVER_TEMP
+				self.battery['/Alerts/CurrentLimit']	= CURRENT_LIMIT
 			else:
 				logger.info ('unable to connect to %s' % self.sIP)
 				self.charger['/Connected'] = 0
