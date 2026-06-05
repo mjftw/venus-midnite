@@ -17,6 +17,18 @@ Both devices are driven by a **single Modbus TCP connection** per poll cycle. Th
 - MidNite Classic reachable on the network from VenusOS
 - WhizBang Jr shunt fitted and enabled in the Classic
 
+### Quick install
+
+Edit `config.py` with your MidNite's IP address, then run:
+
+```bash
+./install.sh <cerbo-ip>
+```
+
+The script copies files, sets up the runit service, and reboots the Cerbo. Done.
+
+### Manual install
+
 ### 1. Copy files to VenusOS
 
 ```bash
@@ -97,6 +109,7 @@ Remove the lines added to `/data/rcS.local` and reboot.
 
 ```
 venus-midnite/
+├── install.sh          # Installs onto a Cerbo GX over SSH and reboots
 ├── midnite_hydro.py    # Main script — registers both D-Bus services
 ├── midnite_hydro.sh    # Shell wrapper called by the runit service
 ├── config.py           # IP address, poll interval, state code mappings
