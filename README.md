@@ -27,6 +27,14 @@ Edit `config.py` with your MidNite's IP address, then run:
 
 The script copies files, sets up the runit service, and reboots the Cerbo. Done.
 
+If your Cerbo has password authentication enabled, set `CERBO_SSH_PASSWORD` and the
+script will use `sshpass` automatically (install it first with `apt install sshpass`
+or `brew install hudochenkov/sshpass/sshpass` on macOS):
+
+```bash
+CERBO_SSH_PASSWORD=yourpassword ./install.sh <cerbo-ip>
+```
+
 ### Manual install
 
 ### 1. Copy files to VenusOS
