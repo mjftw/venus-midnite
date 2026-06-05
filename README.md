@@ -47,7 +47,7 @@ Or clone directly on the device:
 
 ```bash
 ssh root@<venus-ip>
-git clone https://github.com/youruser/venus-midnite /data/midnite
+git clone https://github.com/mjftw/venus-midnite /data/midnite
 ```
 
 ### 2. Edit config.py
@@ -59,6 +59,12 @@ nano /data/midnite/config.py
 ```python
 MIDNITE_IP       = "192.168.x.x"   # Static IP of your MidNite Classic
 MIDNITE_INTERVAL = 5               # Poll interval in seconds
+
+# Optional — only needed to push to a separate external MQTT broker.
+# Venus OS's built-in Mosquitto bridge already handles the common case.
+MQTT_ENABLED     = False
+MQTT_IP          = "192.168.x.x"
+MQTT_PREFIX      = "classic"
 ```
 
 ### 3. Make scripts executable
@@ -154,8 +160,9 @@ venus-midnite/
 
 ### Battery Monitor (`battery`)
 
-All paths from the charger service are also mirrored here so Grafana dashboards
-can query either service without breakage.
+Extended telemetry (Yields, Alerts, Midnite state) is mirrored from the charger
+service. Note: battery temperature is exposed as `/Dc/0/Temperature` here rather
+than `/Temps/Battery` as on the charger service.
 
 | Path                      | Description                                 |
 |---------------------------|---------------------------------------------|
