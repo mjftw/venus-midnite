@@ -22,8 +22,3 @@ MIDNITE_VICTRON = {
 	10: 3,  # HyperVOC:             Victron Bulk
 	18: 7,  # EqualizeMPPT:         Victron Equalize
 }
-
-# Disabled. Relying on Venus OS native Mosquitto broker for Grafana ingestion.
-MQTT_ENABLED        = False
-MQTT_IP             = "192.168.1.101"
-MQTT_PREFIX         = "classic"
