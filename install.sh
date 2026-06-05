@@ -6,6 +6,9 @@ SERVICE_LINK="/service/midnite"
 LOG_DIR="/var/log/midnite"
 RCLOCAL="/data/rcS.local"
 
+CONNECT_RETRIES=5
+CONNECT_RETRY_DELAY=3  # seconds between attempts
+
 usage() {
     echo "Usage: $0 <cerbo-ip>"
     echo ""
@@ -27,27 +30,47 @@ if [ -n "${CERBO_SSH_PASSWORD:-}" ]; then
         exit 1
     fi
     SSH="sshpass -e ssh -o StrictHostKeyChecking=no root@${CERBO_IP}"
-    SCP="sshpass -e scp -o StrictHostKeyChecking=no -r"
+    SCP="sshpass -e scp -o StrictHostKeyChecking=no"
     export SSHPASS="${CERBO_SSH_PASSWORD}"
     echo "==> Using password authentication (sshpass)"
 else
     SSH="ssh root@${CERBO_IP}"
-    SCP="scp -r"
+    SCP="scp"
 fi
 
-echo "==> Connecting to VenusOS device at ${CERBO_IP}..."
-$SSH "echo '    Connected OK'" || {
-    echo "ERROR: Could not connect to root@${CERBO_IP}. Check the IP and that SSH is enabled."
-    exit 1
+# Retry wrapper for SSH connections
+ssh_with_retry() {
+    local attempt=1
+    until $SSH "$1"; do
+        if [ $attempt -ge $CONNECT_RETRIES ]; then
+            echo "ERROR: Could not connect to root@${CERBO_IP} after ${CONNECT_RETRIES} attempts."
+            echo "       Check the IP address and that SSH is enabled on the device."
+            exit 1
+        fi
+        echo "    Connection failed (attempt ${attempt}/${CONNECT_RETRIES}), retrying in ${CONNECT_RETRY_DELAY}s..."
+        sleep $CONNECT_RETRY_DELAY
+        attempt=$((attempt + 1))
+    done
 }
+
+# scp a single file with progress logging
+scp_file() {
+    local src="$1"
+    local dest="$2"
+    echo "    ${src} -> ${dest}"
+    $SCP "$src" "root@${CERBO_IP}:${dest}"
+}
+
+echo "==> Connecting to VenusOS device at ${CERBO_IP}..."
+ssh_with_retry "echo '    Connected OK'"
 
 echo "==> Copying files to ${INSTALL_PATH}..."
 $SSH "mkdir -p ${INSTALL_PATH}/service/log"
-$SCP midnite_hydro.py  "root@${CERBO_IP}:${INSTALL_PATH}/"
-$SCP midnite_hydro.sh  "root@${CERBO_IP}:${INSTALL_PATH}/"
-$SCP config.py         "root@${CERBO_IP}:${INSTALL_PATH}/"
-$SCP service/run       "root@${CERBO_IP}:${INSTALL_PATH}/service/run"
-$SCP service/log/run   "root@${CERBO_IP}:${INSTALL_PATH}/service/log/run"
+scp_file midnite_hydro.py  "${INSTALL_PATH}/midnite_hydro.py"
+scp_file midnite_hydro.sh  "${INSTALL_PATH}/midnite_hydro.sh"
+scp_file config.py         "${INSTALL_PATH}/config.py"
+scp_file service/run       "${INSTALL_PATH}/service/run"
+scp_file service/log/run   "${INSTALL_PATH}/service/log/run"
 
 echo "==> Setting permissions..."
 $SSH "chmod +x ${INSTALL_PATH}/midnite_hydro.sh \
